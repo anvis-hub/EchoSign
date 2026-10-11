@@ -440,16 +440,28 @@ def clean_key(text):
 
 
 
+
 def load_gemini_key():
-   try:
-       if KEY_FILE.exists():
-           text = KEY_FILE.read_text(encoding="utf-8", errors="ignore")
-           cleaned = clean_key(text)
-           if cleaned:
-               return cleaned
-   except OSError:
-       pass
-   return os.environ.get("GEMINI_API_KEY", "").strip()
+    # First, try Streamlit Secrets (for the deployed app)
+    try:
+        key = st.secrets.get("GEMINI_API_KEY", "")
+        if key:
+            return clean_key(key)
+    except Exception:
+        pass
+
+    # Next, try the local key.txt file
+    try:
+        if KEY_FILE.exists():
+            text = KEY_FILE.read_text(encoding="utf-8", errors="ignore")
+            cleaned = clean_key(text)
+            if cleaned:
+                return cleaned
+    except OSError:
+        pass
+
+    # Finally, try the environment variable
+    return os.environ.get("GEMINI_API_KEY", "").strip()
 
 
 
